@@ -7,6 +7,7 @@ import { cacheMiddleWare } from '../middlewares/cacheMiddleware';
 import { authenticatedRoute } from '../utils/authenticatedRequestHandler';
 
 import type { NewUrlDto } from '../dtos/url';
+import loggerMiddleware from '../middlewares/loggerMiddleWare';
 
 // import type { NewUrlDto } from '../dtos/urls';
 
@@ -17,6 +18,7 @@ const urlController = new URLController();
 router.use(apiKeyAuthMiddleware);
 
 router.use(cacheMiddleWare);
+router.use(loggerMiddleware);
 
 router.get(
   '/',

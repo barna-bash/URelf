@@ -4,8 +4,8 @@ export type Log = {
   _id: ObjectId;
   userId: ObjectId;
   urlId: ObjectId;
-  actionType: 'click' | 'create' | 'update' | 'delete';
+  actionType: Request['method'];
   timestamp: Date;
   payload: JSON;
-  ip: string;
+  ip?: string;
 };
