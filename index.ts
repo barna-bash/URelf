@@ -11,10 +11,21 @@ const port = 3000;
 app.use(express.json()); // For parsing JSON request bodies
 
 // Health check route
-app.get('/health-check', (_req, res) => {
+app.get('/health/server', (_req, res) => {
   res.send('Server is running!');
 });
 
+app.get('/health/db', (_req, res) => {
+  client
+    .connect()
+    .then(() => {
+      res.send('Database is connected!');
+    })
+    .catch((err) => {
+      console.error('Database connection error:', err);
+      res.status(500).send('Database connection error');
+    });
+});
 
 // Mounting routes
 app.use('/', redirectHandler); // Public
