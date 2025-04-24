@@ -1,11 +1,12 @@
-import type { ObjectId } from "mongodb";
+import type { ObjectId } from 'mongodb';
 
-export interface Url {
-  _id?: ObjectId,
-  from: string,
-  to: string,
-  description?: string,
-  createdAt?: Date,
-  updatedAt?: Date,
-  clicks?: number,
-}
+export type Url = {
+  _id: ObjectId;
+  originalUrl: string;
+  slug: string;
+  description?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  usage: Date[];
+  userId: ObjectId;
+};
