@@ -1,4 +1,5 @@
 import type { NewUserDto } from '../dtos/user';
+import { DEFAULT_RATE_LIMIT } from '../utils/constants';
 import { userCollection } from '../utils/db';
 import crypto from 'crypto';
 
@@ -21,6 +22,7 @@ export default class UserController {
         email: user.email,
         apiKeys: [apiKey],
         createdAt: new Date(),
+        rateLimit: DEFAULT_RATE_LIMIT,
       });
     } catch (error) {
       console.error('Error inserting user:', error);
