@@ -1,10 +1,20 @@
 import NodeCache from 'node-cache';
-import { type Request, type Response, type NextFunction, type RequestHandler } from 'express';
+import { type Response, type NextFunction, type RequestHandler } from 'express';
+import type { AuthenticatedRequest } from './apiKeyAuthMiddleware';
+
+function concatenateCacheKey(req: AuthenticatedRequest): string {
+  const userId = req.userId;
+
+  const url = req.originalUrl || req.url;
+
+  const key = `${userId}-${url}`;
+  return key;
+}
 
 const cache = new NodeCache({ stdTTL: 60, checkperiod: 120 });
 
-const cacheResolver = (req: Request, res: Response, next: NextFunction) => {
-  const key = req.originalUrl || req.url;
+const cacheResolver = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  const key = concatenateCacheKey(req);
   const cachedResponse = cache.get(key);
 
   if (cachedResponse) {
@@ -25,5 +35,5 @@ const cacheResolver = (req: Request, res: Response, next: NextFunction) => {
 };
 
 export const cacheMiddleWare: RequestHandler = (req, res, next) => {
-  cacheResolver(req, res, next); // Call cacheResolver to handle caching
+  cacheResolver(req as AuthenticatedRequest, res, next); // Call cacheResolver to handle caching
 };
