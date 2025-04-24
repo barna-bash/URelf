@@ -10,7 +10,7 @@ export default class UserController {
    * @returns {Promise<string>} - The generated API key
    */
   async registerUser(user: NewUserDto): Promise<string> {
-    const existingUser = await userCollection.findOne({ $or: [{ email: user.email }, { userName: user.userName }] });
+    const existingUser = await userCollection.findOne({ $or: [{ userName: user.userName }, ...(user.email ? [{ email: user.email }] : [])] });
     if (existingUser) {
       throw new Error('User already exists');
     }

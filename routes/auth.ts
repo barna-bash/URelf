@@ -8,10 +8,9 @@ const urlController = new UserController();
 const ipCache = new NodeCache({ stdTTL: 60, checkperiod: 120 });
 
 router.post('/register', async (_req, res) => {
-  if (!_req.body || !_req.body.userName || !_req.body.email) {
-    res.status(400).json({ message: 'Missing userName or email' });
+  if (!_req.body || !_req.body.userName) {
+    res.status(400).json({ message: 'Missing userName' });
   }
-
   const { userName, email } = _req.body;
 
   // Rate limit based on IP because this endpoint is public
