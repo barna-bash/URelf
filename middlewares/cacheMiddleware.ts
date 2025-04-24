@@ -14,6 +14,14 @@ function concatenateCacheKey(req: AuthenticatedRequest): string {
 const cache = new NodeCache({ stdTTL: 60, checkperiod: 120 });
 
 const cacheResolver = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  if (req.method !== 'GET') {
+    //Invalidate cache for non-GET requests
+    const key = concatenateCacheKey(req);
+    cache.del(key); // Invalidate the cache for this key
+    console.log('Cache invalidated for', key);
+
+    return next();
+  }
   const key = concatenateCacheKey(req);
   const cachedResponse = cache.get(key);
 
