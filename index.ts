@@ -9,6 +9,7 @@ const port = 3000;
 
 // Global middleware
 app.use(express.json()); // For parsing JSON request bodies
+app.set('trust proxy', true);
 
 // Health check route
 app.get('/health/server', (_req, res) => {

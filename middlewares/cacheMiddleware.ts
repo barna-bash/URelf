@@ -33,11 +33,13 @@ const cacheResolver = (req: AuthenticatedRequest, res: Response, next: NextFunct
   // Monkey-patch res.json to capture the response payload
   const originalJson = res.json.bind(res);
 
-  res.json = (body: JSON): Response => {
-    cache.set(key, body); // Cache the response body
-    console.log('Set cache for', key);
-    return originalJson(body);
-  };
+  if ([200, 201].includes(res.statusCode)) {
+    res.json = (body: JSON): Response => {
+      cache.set(key, body);
+      console.log('Set cache for', key);
+      return originalJson(body);
+    };
+  }
 
   next();
 };

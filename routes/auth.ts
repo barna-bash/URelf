@@ -15,8 +15,7 @@ router.post('/register', async (_req, res) => {
 
   // Rate limit based on IP because this endpoint is public
   // TODO: Require IP address in request header?
-  const ip = _req.ip || _req.headers['x-forwarded-for']?.toString() || 'no-ip';
-  console.log('IP:', ip);
+  const ip = _req.ip || 'no-ip';
 
   const apiKey = await urlController.registerUser({ userName, email });
 

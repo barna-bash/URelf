@@ -7,12 +7,11 @@ import { ObjectId } from 'mongodb';
 import type { NewLogDto } from '../dtos/log';
 
 const loggerMiddleware: RequestHandler = async (req, res, next) => {
-  const userId = (req as AuthenticatedRequest).userId;
-
   res.on('finish', async () => {
     const log: NewLogDto = {
-      userId: new ObjectId(userId),
-      urlId: new ObjectId(req.params?.id || ''), // Assuming URL ID is in the request params
+      userId: (req as AuthenticatedRequest).userId ? new ObjectId((req as AuthenticatedRequest).userId!) : undefined, // Assuming user ID is in the request object
+      urlId: new ObjectId(req.params?.id), // Assuming URL ID is in the request params
+      slug: req.params?.slug,
       actionType: req.method,
       timestamp: new Date(),
       payload: req.body,
