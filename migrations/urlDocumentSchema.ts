@@ -10,7 +10,7 @@ await client.db(DB_NAME).command({
       properties: {
         originalUrl: {
           bsonType: 'string',
-          description: 'Optional string',
+          description: 'Required string',
         },
         slug: {
           bsonType: 'string',

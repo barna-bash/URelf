@@ -1,7 +1,7 @@
 import { client, urlCollection } from '../utils/db';
 
 await urlCollection.createIndex(
-  { from: 1 },
+  { slug: 1 },
   {
     unique: true,
     partialFilterExpression: { slug: { $type: 'string' } },
