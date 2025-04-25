@@ -62,6 +62,9 @@ docker run -p 3000:3000 urelf-backend
 
 ## API Documentation
 
+The API documentation is available at `/api-docs` endpoint.
+The documentation is generated from the `openapi.yaml` file.
+
 ### Authentication
 
 Some endpoints are public and can be accessed without authentication, while others require API key-based authentication. Protected endpoints require a valid API key to be passed in the `x-api-key` header.

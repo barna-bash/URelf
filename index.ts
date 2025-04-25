@@ -4,10 +4,17 @@ import authRoutes from './routes/auth';
 import redirectHandler from './routes/redirectHandler';
 import { client } from './utils/db';
 
+import swaggerUi from 'swagger-ui-express';
+import YAML from 'yamljs';
+
+const swaggerDocument = YAML.load('./openapi.yaml');
+
 const app = express();
 const port = process.env.PORT || 3000;
 
 // Global middlewares
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 app.use(express.json()); // For parsing JSON request bodies
 app.set('trust proxy', true); // Required for getting accurate IP address in the request headers
 
