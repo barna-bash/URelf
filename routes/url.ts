@@ -20,11 +20,11 @@ router.use(apiKeyAuthMiddleware);
 router.use(cacheMiddleWare);
 router.use(loggerMiddleware);
 
+// GET all urls created by the user in the context
 router.get(
   '/',
   authenticatedRoute(async (_req: AuthenticatedRequest, res) => {
     try {
-      console.log('This is the userId:', _req.userId);
       const result = await urlController.getUrls({ userId: _req.userId });
       res.json(result);
     } catch (err) {

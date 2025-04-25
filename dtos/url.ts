@@ -6,3 +6,5 @@ export type NewUrlDto = Omit<Url, '_id' | 'createdAt' | 'updatedAt' | 'usage' | 
 export type UpdateUrlDto = Partial<NewUrlDto> & {
   _id: string;
 };
+
+export type UrlListItemDto = Pick<Url, '_id' | 'originalUrl' | 'slug' | 'createdAt' | 'updatedAt'>;
