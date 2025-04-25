@@ -56,6 +56,27 @@ router.get(
   })
 );
 
+// POST url - Create a new short URL
+router.post(
+  '/',
+  authenticatedRoute(async (req: AuthenticatedRequest & { body: NewUrlDto }, res) => {
+    const { originalUrl, slug, description } = req.body;
+
+    const result = await urlController.addUrl(req.userId, { originalUrl, slug, description });
+    res.status(201).json(result);
+  })
+);
+
+// PUT url - Update a short URL
+router.put(
+  '/:id',
+  authenticatedRoute(async (req: AuthenticatedRequest & { body: NewUrlDto }, res) => {
+    const { originalUrl, slug, description } = req.body;
+
+    const result = await urlController.addUrl(req.userId, { originalUrl, slug, description });
+    res.status(201).json(result);
+  })
+);
 // // GET /url/:shortUrl
 // router.get('/:shortUrl', async (req, res) => {
 //   try {
@@ -65,23 +86,6 @@ router.get(
 //     res.status(500).json({ message: 'Server error' });
 //   }
 // });
-
-// // GET /url
-// router.get('/', async (_req, res) => {
-//   const result = await urlController.getUrls();
-//   res.json(result);
-// });
-
-// POST /url
-router.post(
-  '/',
-  authenticatedRoute(async (req: AuthenticatedRequest & { body: NewUrlDto }, res) => {
-    const { originalUrl, slug, description } = req.body;
-    console.log('posted');
-    const result = await urlController.addUrl(req.userId, { originalUrl, slug, description });
-    res.status(201).json(result);
-  })
-);
 
 // // DELETE /url/:id
 // router.delete('/:id', async (req, res) => {
