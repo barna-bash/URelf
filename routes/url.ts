@@ -9,8 +9,6 @@ import { authenticatedRoute } from '../utils/authenticatedRequestHandler';
 import type { NewUrlDto } from '../dtos/url';
 import loggerMiddleware from '../middlewares/loggerMiddleWare';
 
-// import type { NewUrlDto } from '../dtos/urls';
-
 const router = Router();
 const urlController = new URLController();
 
@@ -87,26 +85,9 @@ router.delete(
       res.status(400).json({ message: 'URL ID is required' });
       return;
     }
-    const result = await urlController.deleteUrl(req.userId, urlId);
+    const result = await urlController.deleteUrl(req.userId, { urlId });
     res.json(result);
   })
 );
-
-// // GET /url/:shortUrl
-// router.get('/:shortUrl', async (req, res) => {
-//   try {
-//     const result = await urlController.getRedirectUrl(req.params.shortUrl);
-//     result ? res.json(result) : res.status(404).json({ message: 'URL not found' });
-//   } catch (err) {
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// });
-
-// // DELETE /url/:id
-// router.delete('/:id', async (req, res) => {
-//   const urlId = new req.params.u
-//   const deleted = await urlController.deleteUrl(urlId);
-//   deleted ? res.json({ message: 'URL deleted' }) : res.status(404).json({ message: 'Not found' });
-// });
 
 export default router;

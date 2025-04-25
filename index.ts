@@ -7,11 +7,13 @@ import { client } from './utils/db';
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Global middleware
+// Global middlewares
 app.use(express.json()); // For parsing JSON request bodies
-app.set('trust proxy', true);
+app.set('trust proxy', true); // Required for getting accurate IP address in the request headers
 
 // Health check route
+
+//TODO: Move to a separate health route/controller files
 app.get('/health/server', (_req, res) => {
   res.send('Server is running!');
 });
