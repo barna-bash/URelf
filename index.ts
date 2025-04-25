@@ -29,9 +29,9 @@ app.get('/health/db', (_req, res) => {
 });
 
 // Mounting routes
-app.use('/', redirectHandler); // Public
 app.use('/urls/', urlRoutes); // Private
 app.use('/auth/', authRoutes); // Public
+app.use('/', redirectHandler); // Public
 
 app.listen(port, () => {
   console.log(`Server listening on http://localhost:${port}`);
