@@ -15,6 +15,10 @@ class URLController {
   public async getUrlById(userId: string, { urlId }: { urlId: string }): Promise<Url | null> {
     const urlEntry = await urlCollection.findOne<Url>({ _id: new ObjectId(urlId), userId: userId });
 
+    if (!urlEntry) {
+      throw new Error('URL not found');
+    }
+
     return urlEntry;
   }
 
