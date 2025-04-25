@@ -78,7 +78,7 @@ class URLController {
   }
 
   // Delete a single url
-  public async deleteUrl(userId: string, urlId: string): Promise<boolean> {
+  public async deleteUrl(userId: string, { urlId }: { urlId: string }): Promise<boolean> {
     try {
       const result = await urlCollection.findOneAndDelete({ _id: new ObjectId(urlId), userId });
       if (!result) {
