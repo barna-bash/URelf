@@ -77,6 +77,21 @@ router.put(
     res.status(201).json(result);
   })
 );
+
+// DELETE url - Delete a short URL
+router.delete(
+  '/:id',
+  authenticatedRoute(async (req: AuthenticatedRequest, res) => {
+    const urlId = req.params.id;
+    if (!urlId) {
+      res.status(400).json({ message: 'URL ID is required' });
+      return;
+    }
+    const result = await urlController.deleteUrl(req.userId, urlId);
+    res.json(result);
+  })
+);
+
 // // GET /url/:shortUrl
 // router.get('/:shortUrl', async (req, res) => {
 //   try {
@@ -89,7 +104,7 @@ router.put(
 
 // // DELETE /url/:id
 // router.delete('/:id', async (req, res) => {
-//   const urlId = new ObjectId(req.params.id);
+//   const urlId = new req.params.u
 //   const deleted = await urlController.deleteUrl(urlId);
 //   deleted ? res.json({ message: 'URL deleted' }) : res.status(404).json({ message: 'Not found' });
 // });

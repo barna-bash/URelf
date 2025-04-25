@@ -74,8 +74,17 @@ class URLController {
   }
 
   // Delete a single url
-  public async deleteUrl(id: ObjectId) {
-    return await urlCollection.deleteOne({ _id: id });
+  public async deleteUrl(userId: string, urlId: string): Promise<boolean> {
+    try {
+      const result = await urlCollection.findOneAndDelete({ _id: new ObjectId(urlId), userId });
+      if (!result) {
+        throw new Error('URL not found');
+      }
+      return true;
+    } catch (error) {
+      console.log(error);
+      throw new Error('Failed to delete URL');
+    }
   }
 }
 
