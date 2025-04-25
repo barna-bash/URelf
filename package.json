@@ -10,7 +10,8 @@
     "migrate:unique-url": "bun migrations/uniqueShortUrl.ts",
     "migrate:url-schema": "bun migrations/urlDocumentSchema.ts",
     "postinstall": "bun run migrate:unique-url && bun run migrate:url-schema",
-    "build": "bun build index.ts --target node --outdir dist"
+    "build": "bun build index.ts --target node --outdir dist",
+    "clean": "rm -rf dist"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.1",
