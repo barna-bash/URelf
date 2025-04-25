@@ -2,11 +2,11 @@ import { urlCollection } from '../utils/db.ts';
 
 import { MongoError, ObjectId } from 'mongodb';
 import type { Url } from '../models/urls.ts';
-import type { NewUrlDto, UrlListItemDto } from '../dtos/url.ts';
+import type { NewUrlDto, UpdateUrlDto, UrlListItemDto } from '../dtos/url.ts';
 
 class URLController {
   // Fetch all urls which were created by the user on context
-  public async getUrls({ userId }: { userId: string }): Promise<UrlListItemDto[]> {
+  public async getUrls(userId: string): Promise<UrlListItemDto[]> {
     const result = await urlCollection.find({ userId }).sort({ createdAt: -1 }).project({ usage: 0, userId: 0 }).toArray();
     return result as UrlListItemDto[];
   }

@@ -25,7 +25,7 @@ router.get(
   '/',
   authenticatedRoute(async (_req: AuthenticatedRequest, res) => {
     try {
-      const result = await urlController.getUrls({ userId: _req.userId });
+      const result = await urlController.getUrls(_req.userId);
       res.json(result);
     } catch (err) {
       res.status(500).json({ message: err });
