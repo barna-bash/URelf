@@ -5,8 +5,8 @@ info:
   description: API for shortening URLs with user authentication and rate limiting
 
 servers:
-  # - url: https://urelf.com
-  # description: Production server
+  - url: https://urelf.com
+    description: Production server
   - url: http://localhost:3000
     description: Development server
 components:
