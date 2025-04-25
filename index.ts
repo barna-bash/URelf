@@ -5,7 +5,7 @@ import redirectHandler from './routes/redirectHandler';
 import { client } from './utils/db';
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // Global middleware
 app.use(express.json()); // For parsing JSON request bodies
