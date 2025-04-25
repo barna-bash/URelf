@@ -5,13 +5,39 @@ import type { Url } from '../models/urls.ts';
 import type { NewUrlDto, UpdateUrlDto, UrlListItemDto } from '../dtos/url.ts';
 
 class URLController {
-  // Fetch all urls which were created by the user on context
+  /**
+   * Fetches all URLs created by user in the context
+   *
+   * @param userId - The userId of current user in the context
+   * @returns A promise that resolves to an array of URL list items
+   *
+   * @example
+   * ```typescript
+   * const urlController = new URLController();
+   * const urls = await urlController.getUrls('user123');
+   * // Returns: [{ _id: '...', originalUrl: 'https://example.com', slug: 'example', ... }, ...]
+   * ```
+   */
   public async getUrls(userId: string): Promise<UrlListItemDto[]> {
     const result = await urlCollection.find({ userId }).sort({ createdAt: -1 }).project({ usage: 0, userId: 0 }).toArray();
     return result as UrlListItemDto[];
   }
 
-  // Fetch one url by id  - allow details for the user who created it
+  /**
+   * Fetches a specific URL by ID for the authenticated user
+   *
+   * @param userId - The userId of current user in the context
+   * @param options - Object containing the URL ID to fetch
+   * @returns A promise that resolves to the URL object or null if not found
+   * @throws Error if URL is not found
+   *
+   * @example
+   * ```typescript
+   * const urlController = new URLController();
+   * const url = await urlController.getUrlById('user123', { urlId: '60d21b4667d0d8992e610c85' });
+   * // Returns: { _id: '60d21b4667d0d8992e610c85', originalUrl: 'https://example.com', ... }
+   * ```
+   */
   public async getUrlById(userId: string, { urlId }: { urlId: string }): Promise<Url | null> {
     const urlEntry = await urlCollection.findOne<Url>({ _id: new ObjectId(urlId), userId: userId });
 
@@ -22,7 +48,20 @@ class URLController {
     return urlEntry;
   }
 
-  // Fetch the original url by slug and redirect to it by the router
+  /**
+   * Retrieves the original URL by slug and records a new visit
+   *
+   * @param slug - The slug of the shortened URL
+   * @returns A promise that resolves to the original URL string
+   * @throws Error if URL is not found
+   *
+   * @example
+   * ```typescript
+   * const urlController = new URLController();
+   * const originalUrl = await urlController.getRedirectUrl('example');
+   * // Returns: 'https://example.com'
+   * ```
+   */
   public async getRedirectUrl(slug: string): Promise<string> {
     const urlEntry = await urlCollection.findOne<Url>({ slug }, { projection: { _id: 0, originalUrl: 1 } });
     if (!urlEntry) {
@@ -35,7 +74,25 @@ class URLController {
     return urlEntry.originalUrl;
   }
 
-  // Add a new shortened url
+  /**
+   * Creates a new shortened URL
+   *
+   * @param userId - The userId of current user in the context
+   * @param url - The URL data to create
+   * @returns A promise that resolves to the created URL object
+   * @throws Error if URL creation fails or if the URL already exists
+   *
+   * @example
+   * ```typescript
+   * const urlController = new URLController();
+   * const newUrl = await urlController.addUrl('user123', {
+   *   originalUrl: 'https://example.com',
+   *   slug: 'example',
+   *   description: 'Example website'
+   * });
+   * // Returns: { _id: '...', originalUrl: 'https://example.com', slug: 'example', ... }
+   * ```
+   */
   public async addUrl(userId: string, url: NewUrlDto): Promise<Url> {
     const createdAt = new Date();
     try {
@@ -55,7 +112,25 @@ class URLController {
     }
   }
 
-  // Update the url by given id
+  /**
+   * Updates an existing URL by ID
+   *
+   * @param userId - The userId of current user in the context
+   * @param urlToUpdate - Object containing the URL ID and fields to update
+   * @returns A promise that resolves to the updated URL object
+   * @throws Error if URL update fails or if the URL is not found
+   *
+   * @example
+   * ```typescript
+   * const urlController = new URLController();
+   * const updatedUrl = await urlController.updateUrl('user123', {
+   *   urlId: '60d21b4667d0d8992e610c85',
+   *   originalUrl: 'https://updated-example.com',
+   *   description: 'Updated example website'
+   * });
+   * // Returns: { _id: '60d21b4667d0d8992e610c85', originalUrl: 'https://updated-example.com', ... }
+   * ```
+   */
   public async updateUrl(userId: string, urlToUpdate: UpdateUrlDto): Promise<Url> {
     const { urlId, ...urlToUpdateParams } = urlToUpdate;
 
@@ -77,7 +152,21 @@ class URLController {
     }
   }
 
-  // Delete a single url
+  /**
+   * Deletes a URL by ID
+   *
+   * @param userId - The userId of current user in the context
+   * @param options - Object containing the URL ID to delete
+   * @returns A promise that resolves to true if deletion was successful
+   * @throws Error if URL deletion fails or if the URL is not found
+   *
+   * @example
+   * ```typescript
+   * const urlController = new URLController();
+   * const result = await urlController.deleteUrl('user123', { urlId: '60d21b4667d0d8992e610c85' });
+   * // Returns: true
+   * ```
+   */
   public async deleteUrl(userId: string, { urlId }: { urlId: string }): Promise<boolean> {
     try {
       const result = await urlCollection.findOneAndDelete({ _id: new ObjectId(urlId), userId });
