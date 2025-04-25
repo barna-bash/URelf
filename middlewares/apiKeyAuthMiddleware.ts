@@ -6,10 +6,10 @@ export interface AuthenticatedRequest extends Request {
   userId: string;
 }
 
-const apiKeyAuth = async (req: Request, res: Response, next: NextFunction) => {
+const apiKeyAuth = async (req: Request, res: Response, next: NextFunction): Promise<void | Response> => {
   const apiKey = req.headers['x-api-key'];
 
-  if (typeof apiKey !== 'string') {
+  if (!apiKey || typeof apiKey !== 'string') {
     return res.status(401).json({ message: 'API key is missing' });
   }
 
@@ -24,21 +24,21 @@ const apiKeyAuth = async (req: Request, res: Response, next: NextFunction) => {
 
     const currentDate = new Date();
 
-    const recentActivity = logCollection.find(
-      {
-        userId: user._id,
-        timestamp: { $gte: currentDate.getTime() - 60 * 1000 }, // Last 1 minute
-      },
-      {
-        projection: { _id: 1 },
-        sort: { timestamp: -1 }, // Sort by timestamp in descending order
-        limit: user.rateLimit,
-      }
-    );
+    const recentActivities = await logCollection
+      .find(
+        {
+          userId: user._id,
+          timestamp: { $gte: currentDate.getTime() - 60 * 1000 }, // Last 1 minute
+        },
+        {
+          projection: { _id: 1 },
+          sort: { timestamp: -1 }, // Sort by timestamp in descending order
+          limit: user.rateLimit,
+        }
+      )
+      .toArray();
 
-    const activityRecords = await recentActivity.toArray();
-
-    if (activityRecords.length >= user.rateLimit) {
+    if (recentActivities.length >= user.rateLimit) {
       return res.status(429).json({ message: 'Rate limit exceeded' });
     }
 
