@@ -31,7 +31,7 @@ class URLController {
     return urlEntry.originalUrl;
   }
 
-  // Add a url
+  // Add a new shortened url
   public async addUrl(userId: string, url: NewUrlDto): Promise<Url> {
     const createdAt = new Date();
     try {
@@ -51,9 +51,26 @@ class URLController {
     }
   }
 
-  // Update the urls
-  public async updateUrl(id: ObjectId, url: Url) {
-    return await urlCollection.updateOne({ id }, { $set: url });
+  // Update the url by given id
+  public async updateUrl(userId: string, urlToUpdate: UpdateUrlDto): Promise<Url> {
+    const { urlId, ...urlToUpdateParams } = urlToUpdate;
+
+    try {
+      const urlUpdated = (await urlCollection.findOneAndUpdate(
+        { _id: new ObjectId(urlId), userId },
+        { $set: { ...urlToUpdateParams } },
+        { returnDocument: 'after' }
+      )) as Url | null;
+
+      if (!urlUpdated) {
+        throw new Error('URL not found');
+      }
+
+      return urlUpdated;
+    } catch (error) {
+      console.log(error);
+      throw new Error('Failed to update URL');
+    }
   }
 
   // Delete a single url

@@ -4,7 +4,7 @@ export type NewUrlDto = Omit<Url, '_id' | 'createdAt' | 'updatedAt' | 'usage' | 
 };
 
 export type UpdateUrlDto = Partial<NewUrlDto> & {
-  _id: string;
+  urlId: string;
 };
 
 export type UrlListItemDto = Pick<Url, '_id' | 'originalUrl' | 'slug' | 'createdAt' | 'updatedAt'>;
