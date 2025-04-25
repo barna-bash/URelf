@@ -33,16 +33,28 @@ router.get(
   })
 );
 
-// // GET /url/id/:id
-// router.get('/id/:id', async (req: AuthenticatedRequest, res) => {
-//   try {
-//     const urlId = new ObjectId(req.params.id);
-//     const result = await urlController.getUrlById({ userId: req.userId, urlId });
-//     result ? res.json(result) : res.status(404).json({ message: 'URL not found' });
-//   } catch (err) {
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// });
+// GET url by id - Authorize user to access their own urls
+router.get(
+  '/:id',
+  authenticatedRoute(async (req: AuthenticatedRequest, res) => {
+    try {
+      const urlId = req.params.id;
+      if (!urlId) {
+        res.status(400).json({ message: 'URL ID is required' });
+        return;
+      }
+      const result = await urlController.getUrlById(req.userId, { urlId });
+      if (result) {
+        res.json(result);
+      } else {
+        res.status(404).json({ message: 'URL not found' });
+      }
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Server error' });
+    }
+  })
+);
 
 // // GET /url/:shortUrl
 // router.get('/:shortUrl', async (req, res) => {

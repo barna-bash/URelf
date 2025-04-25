@@ -12,12 +12,13 @@ class URLController {
   }
 
   // Fetch one url by id  - allow details for the user who created it
-  public async getUrlById(userId: string, { id }: { id: ObjectId }): Promise<Url | null> {
-    const urlEntry = await urlCollection.findOne<Url>({ _id: id, userId: userId });
+  public async getUrlById(userId: string, { urlId }: { urlId: string }): Promise<Url | null> {
+    const urlEntry = await urlCollection.findOne<Url>({ _id: new ObjectId(urlId), userId: userId });
 
     return urlEntry;
   }
 
+  // Fetch the original url by slug and redirect to it by the router
   public async getRedirectUrl(slug: string): Promise<string> {
     const urlEntry = await urlCollection.findOne<Url>({ slug }, { projection: { _id: 0, originalUrl: 1 } });
     if (!urlEntry) {
