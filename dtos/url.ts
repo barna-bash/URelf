@@ -9,3 +9,5 @@ export type UpdateUrlDto = Partial<NewUrlDto> & {
 };
 
 export type UrlListItemDto = Pick<Url, '_id' | 'originalUrl' | 'customAlias' | 'createdAt' | 'updatedAt'>;
+
+export type UrlAnalyticsDto = { totalRedirects: number; lastRedirects: Date[] };

@@ -102,6 +102,18 @@ components:
         userId:
           type: string
           format: objectid
+    UrlAnalyticsDto:
+      type: object
+      properties:
+        totalRedirects:
+          type: integer
+          description: Total number of redirects for the URL
+        lastRedirects:
+          type: array
+          items:
+            type: string
+            format: date-time
+          description: Timestamps of the last redirects
     Error:
       type: object
       properties:
@@ -311,6 +323,51 @@ paths:
                 $ref: "#/components/schemas/Error"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /analytics/{alias}:
+    get:
+      summary: Get analytics for a specific URL by alias
+      description: Retrieves usage statistics for a URL identified by its custom alias
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: alias
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The custom alias of the URL to get analytics for
+      responses:
+        "200":
+          description: URL analytics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UrlAnalyticsDto"
+        "400":
+          description: Invalid input, alias is required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: URL not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
           content:
             application/json:
               schema:

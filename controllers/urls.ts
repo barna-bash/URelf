@@ -2,11 +2,11 @@ import { urlCollection, userCollection } from '../utils/db.ts';
 
 import { MongoError, ObjectId } from 'mongodb';
 import type { Url } from '../models/urls.ts';
-import type { NewUrlDto, UpdateUrlDto, UrlListItemDto } from '../dtos/url.ts';
+import type { NewUrlDto, UpdateUrlDto, UrlAnalyticsDto, UrlListItemDto } from '../dtos/url.ts';
 import { DEFAULT_AUTO_GENERATED_ALIAS_LENGTH, DEFAULT_URL_EXPIRATION_DAYS } from '../utils/constants.ts';
 import { nanoid } from 'nanoid';
 import { cache } from '../middlewares/cacheMiddleware.ts';
-import { AppError, NotFoundError, ConflictError, TooManyRequestsError, InternalServerError } from '../utils/errors.ts';
+import { AppError, NotFoundError, ConflictError, TooManyRequestsError, InternalServerError, UnauthorizedError } from '../utils/errors.ts';
 
 class URLController {
   /**
@@ -230,6 +230,28 @@ class URLController {
         throw error;
       }
       throw new InternalServerError('Failed to delete URL');
+    }
+  }
+
+  public async getUrlAnalytics(userId: string, { alias }: { alias: string }): Promise<UrlAnalyticsDto> {
+    try {
+      const urlUsage = await urlCollection
+        .aggregate<{ usage: Date }>([{ $match: { customAlias: alias, userId } }, { $project: { usage: 1 } }, { $unwind: '$usage' }, { $sort: { usage: -1 } }, { $limit: 5 }])
+        .toArray();
+
+      if (!urlUsage.length) {
+        throw new UnauthorizedError('Not allowed to access analytics for this URL');
+      }
+
+      return {
+        totalRedirects: urlUsage.length,
+        lastRedirects: urlUsage.map((item) => item.usage),
+      };
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+      throw new InternalServerError('Failed to get URL analytics');
     }
   }
 
