@@ -7,7 +7,7 @@ function concatenateCacheKey(req: AuthenticatedRequest): string {
 
   const url = req.originalUrl || req.url;
 
-  const key = `${userId}-${url}`;
+  const key = `${userId}${url ? `-${url}` : ''}`;
   return key;
 }
 
