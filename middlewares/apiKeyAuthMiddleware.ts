@@ -7,7 +7,8 @@ export interface AuthenticatedRequest extends Request {
 }
 
 const apiKeyAuth = async (req: Request, res: Response, next: NextFunction): Promise<void | Response> => {
-  const apiKey = req.headers['x-api-key'];
+  const authHeader = req.headers['authorization'];
+  const apiKey = typeof authHeader === 'string' && authHeader.startsWith('Api-Key ') ? authHeader.substring(8) : null;
 
   if (!apiKey || typeof apiKey !== 'string') {
     return res.status(401).json({ message: 'API key is missing' });
@@ -17,7 +18,7 @@ const apiKeyAuth = async (req: Request, res: Response, next: NextFunction): Prom
     const user = await userCollection.findOne<User>({ apiKeys: apiKey });
 
     if (!user) {
-      return res.status(403).json({ message: 'Invalid API key' });
+      return res.status(401).json({ message: 'Invalid API key' });
     }
 
     // Check if user has not exceeded their rate limit in the past 1 minute

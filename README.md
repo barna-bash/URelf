@@ -67,7 +67,12 @@ The documentation is generated from the `openapi.yaml` file.
 
 ### Authentication
 
-Some endpoints are public and can be accessed without authentication, while others require API key-based authentication. Protected endpoints require a valid API key to be passed in the `x-api-key` header.
+Some endpoints are public and can be accessed without authentication, while others require API key-based authentication. Protected endpoints require a valid API key to be passed in the `Authorization` header.
+
+Example authorization header:
+```
+Authorization: Api-Key <api-key>
+```
 
 ### Endpoints
 
@@ -94,7 +99,7 @@ Some endpoints are public and can be accessed without authentication, while othe
 
 ### Authorization and logging
 
-The API key is passed in the `x-api-key` header and the related userId (if exists) is added to the request object by the `apiKeyAuthMiddleware` middleware.
+The API key is passed in the `Authorization` header and the related userId (if exists) is added to the request object by the `apiKeyAuthMiddleware` middleware.
 
 All controllers require the userId to be passed as the first parameter.
 
