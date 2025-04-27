@@ -3,8 +3,9 @@ import { urlCollection } from '../utils/db.ts';
 import { MongoError, ObjectId } from 'mongodb';
 import type { Url } from '../models/urls.ts';
 import type { NewUrlDto, UpdateUrlDto, UrlListItemDto } from '../dtos/url.ts';
-import { DEFAULT_AUTO_GENERATED_ALIAS_LENGTH } from '../utils/constants.ts';
+import { DEFAULT_AUTO_GENERATED_ALIAS_LENGTH, DEFAULT_URL_EXPIRATION_DAYS } from '../utils/constants.ts';
 import { nanoid } from 'nanoid';
+import { cache } from '../middlewares/cacheMiddleware.ts';
 
 class URLController {
   /**
@@ -65,13 +66,18 @@ class URLController {
    * ```
    */
   public async getRedirectUrl(customAlias: string): Promise<string> {
-    const urlEntry = await urlCollection.findOne<Url>({ customAlias }, { projection: { _id: 0, originalUrl: 1 } });
-    if (!urlEntry) {
-      throw new Error('URL not found');
+    const cachedUrl = cache.get<{ redirectUrl: string }>(customAlias);
+    if (cachedUrl) {
+      console.log('Redirect url read from cache');
+      this.incrementUrlUsage(customAlias);
+      return cachedUrl.redirectUrl;
     }
 
-    // Add new visit timestamp to the usage array
-    await urlCollection.updateOne({ customAlias }, { $addToSet: { usage: new Date() } });
+    const urlEntry = await urlCollection.findOne<Url>({ customAlias, expiresAt: { $gte: new Date() } }, { projection: { _id: 0, originalUrl: 1 } });
+    if (!urlEntry) {
+      throw new Error('URL not found or expired');
+    }
+    this.incrementUrlUsage(customAlias);
 
     return urlEntry.originalUrl;
   }
@@ -90,7 +96,8 @@ class URLController {
    * const newUrl = await urlController.addUrl('user123', {
    *   originalUrl: 'https://example.com',
    *   customAlias: 'example',
-   *   description: 'Example website'
+   *   description: 'Example website',
+   *   expiresAt: '2024-12-31T23:59:59Z'
    * });
    * // Returns: { _id: '...', originalUrl: 'https://example.com', customAlias: 'example', ... }
    * ```
@@ -107,11 +114,14 @@ class URLController {
         url.customAlias = nanoid(DEFAULT_AUTO_GENERATED_ALIAS_LENGTH);
       }
 
+      const expiresAt = url.expiresAt ? new Date(url.expiresAt).getTime() : new Date(createdAt.getTime() + DEFAULT_URL_EXPIRATION_DAYS * 24 * 60 * 60 * 1000).getTime();
+
       const result = await urlCollection.insertOne({
         ...url,
         createdAt,
         updatedAt: createdAt,
         userId,
+        expiresAt: new Date(expiresAt),
       });
 
       if (!result.insertedId) {
@@ -205,6 +215,11 @@ class URLController {
       console.log(error);
       throw new Error('Failed to delete URL');
     }
+  }
+
+  private incrementUrlUsage(customAlias: string) {
+    // Add new visit timestamp to the usage array
+    urlCollection.updateOne({ customAlias }, { $addToSet: { usage: new Date() } });
   }
 }
 

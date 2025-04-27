@@ -9,4 +9,5 @@ export type Url = {
   updatedAt?: Date;
   usage: Date[];
   userId: ObjectId;
+  expiresAt: Date;
 };

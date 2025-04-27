@@ -1,6 +1,7 @@
 import type { Url } from '../models/urls';
-export type NewUrlDto = Omit<Url, '_id' | 'createdAt' | 'updatedAt' | 'usage' | 'userId'> & {
+export type NewUrlDto = Omit<Url, '_id' | 'createdAt' | 'updatedAt' | 'usage' | 'userId' | 'expiresAt'> & {
   customAlias?: string;
+  expiresAt?: Date;
 };
 
 export type UpdateUrlDto = Partial<NewUrlDto> & {

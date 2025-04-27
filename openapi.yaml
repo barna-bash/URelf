@@ -51,6 +51,27 @@ components:
         description:
           type: string
           description: Optional description of the URL
+        expiresAt:
+          type: string
+          format: date-time
+          description: Expiration date for the URL, defaults to 7 days if not provided
+    UpdateUrlDto:
+      type: object
+      properties:
+        originalUrl:
+          type: string
+          format: uri
+          description: The original URL to be shortened
+        customAlias:
+          type: string
+          description: Custom customAlias for the shortened URL
+        description:
+          type: string
+          description: Optional description of the URL
+        expiresAt:
+          type: string
+          format: date-time
+          description: Expiration date for the URL
     Url:
       type: object
       properties:
@@ -68,6 +89,9 @@ components:
           type: string
           format: date-time
         updatedAt:
+          type: string
+          format: date-time
+        expiresAt:
           type: string
           format: date-time
         usage:
@@ -213,7 +237,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
     put:
-      summary: Update a URL
+      summary: Update a URL by ID
       security:
         - ApiKeyAuth: []
       parameters:
@@ -227,7 +251,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/NewUrlDto"
+              $ref: "#/components/schemas/UpdateUrlDto"
       responses:
         "200":
           description: URL updated successfully
@@ -235,6 +259,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Url"
+        "400":
+          description: Invalid input or URL with alias already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "404":
           description: URL not found
           content:
@@ -243,6 +273,12 @@ paths:
                 $ref: "#/components/schemas/Error"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Rate limit exceeded
           content:
             application/json:
               schema:
