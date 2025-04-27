@@ -5,6 +5,7 @@ import { cacheMiddleWare } from '../middlewares/cacheMiddleware';
 
 import loggerMiddleware from '../middlewares/loggerMiddleWare';
 import { ensureProtocol } from '../utils/ensureProtocol';
+import { errorHandler } from '../middlewares/errorHandlerMiddleWare';
 
 // import type { NewUrlDto } from '../dtos/urls';
 
@@ -16,14 +17,14 @@ const urlController = new URLController();
 router.use(cacheMiddleWare);
 router.use(loggerMiddleware);
 
-router.get('/:slug', async (req, res) => {
+router.get('/:customAlias', async (req, res) => {
   try {
-    const { slug } = req.params;
-    const result = await urlController.getRedirectUrl(slug);
+    const { customAlias } = req.params;
+    const result = await urlController.getRedirectUrl(customAlias);
 
     res.status(302).redirect(ensureProtocol(result));
-  } catch (err) {
-    res.status(404).json({ message: err });
+  } catch (err: unknown) {
+    errorHandler(err, req, res);
   }
 });
 

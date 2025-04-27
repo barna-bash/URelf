@@ -1,5 +1,6 @@
 import express from 'express';
 import urlRoutes from './routes/url';
+import analyticsRoutes from './routes/analytics';
 import authRoutes from './routes/auth';
 import redirectHandler from './routes/redirectHandler';
 import { client } from './utils/db';
@@ -40,6 +41,7 @@ app.get('/health/db', (_req, res) => {
 // Mounting routes
 app.use('/urls/', urlRoutes); // Private
 app.use('/auth/', authRoutes); // Public
+app.use('/analytics/', analyticsRoutes); // Private
 app.use('/', redirectHandler); // Public
 
 app.listen(port, () => {
