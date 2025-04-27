@@ -11,7 +11,7 @@ const loggerMiddleware: RequestHandler = async (req, res, next) => {
     const log: NewLogDto = {
       userId: (req as AuthenticatedRequest).userId ? new ObjectId((req as AuthenticatedRequest).userId!) : undefined, // Assuming user ID is in the request object
       urlId: new ObjectId(req.params?.id), // Assuming URL ID is in the request params
-      slug: req.params?.slug,
+      customAlias: req.params?.customAlias,
       actionType: req.method,
       timestamp: new Date(),
       payload: req.body,

@@ -39,15 +39,15 @@ components:
       type: object
       required:
         - originalUrl
-        - slug
+        - customAlias
       properties:
         originalUrl:
           type: string
           format: uri
           description: The original URL to be shortened
-        slug:
+        customAlias:
           type: string
-          description: Custom slug for the shortened URL
+          description: Custom customAlias for the shortened URL
         description:
           type: string
           description: Optional description of the URL
@@ -60,7 +60,7 @@ components:
         originalUrl:
           type: string
           format: uri
-        slug:
+        customAlias:
           type: string
         description:
           type: string

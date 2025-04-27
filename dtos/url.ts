@@ -1,10 +1,10 @@
 import type { Url } from '../models/urls';
 export type NewUrlDto = Omit<Url, '_id' | 'createdAt' | 'updatedAt' | 'usage' | 'userId'> & {
-  slug?: string;
+  customAlias?: string;
 };
 
 export type UpdateUrlDto = Partial<NewUrlDto> & {
   urlId: string;
 };
 
-export type UrlListItemDto = Pick<Url, '_id' | 'originalUrl' | 'slug' | 'createdAt' | 'updatedAt'>;
+export type UrlListItemDto = Pick<Url, '_id' | 'originalUrl' | 'customAlias' | 'createdAt' | 'updatedAt'>;

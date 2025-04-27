@@ -92,7 +92,7 @@ Authorization: Api-Key <api-key>
 
 ##### URL shortening
 
-  - `POST /urls` - Create a new short URL
+  - `POST /urls` - Create a new short URL (with optional custom alias)
   - `GET /urls` - Fetch all URLs created by the user
   - `GET /urls/:urlId` - Get detailed information about the URL (usage, description, etc.) - Only available for the user who created the short URL
   - `DELETE /urls/:urlId` - Delete a URL

@@ -4,7 +4,7 @@ export type Log = {
   _id: ObjectId;
   userId?: ObjectId;
   urlId?: ObjectId;
-  slug?: string;
+  customAlias?: string;
   actionType: Request['method'];
   timestamp: Date;
   payload: JSON;

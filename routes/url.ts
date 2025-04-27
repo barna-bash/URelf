@@ -6,7 +6,7 @@ import URLController from '../controllers/urls';
 import { cacheMiddleWare } from '../middlewares/cacheMiddleware';
 import { authenticatedRoute } from '../utils/authenticatedRequestHandler';
 
-import type { NewUrlDto } from '../dtos/url';
+import type { NewUrlDto, UpdateUrlDto } from '../dtos/url';
 import loggerMiddleware from '../middlewares/loggerMiddleWare';
 
 const router = Router();
@@ -58,20 +58,20 @@ router.get(
 router.post(
   '/',
   authenticatedRoute(async (req: AuthenticatedRequest & { body: NewUrlDto }, res) => {
-    const { originalUrl, slug, description } = req.body;
+    const { originalUrl, customAlias, description } = req.body;
 
-    const result = await urlController.addUrl(req.userId, { originalUrl, slug, description });
-    res.status(201).json(result);
+    const result = await urlController.addUrl(req.userId, { originalUrl, customAlias, description });
+
+    const shortUrl = `${req.protocol}://${req.headers.host}/${result}`;
+    res.status(201).json({ shortUrl });
   })
 );
 
 // PUT url - Update a short URL
 router.put(
   '/:id',
-  authenticatedRoute(async (req: AuthenticatedRequest & { body: NewUrlDto }, res) => {
-    const { originalUrl, slug, description } = req.body;
-
-    const result = await urlController.addUrl(req.userId, { originalUrl, slug, description });
+  authenticatedRoute(async (req: AuthenticatedRequest & { body: UpdateUrlDto }, res) => {
+    const result = await urlController.updateUrl(req.userId, { ...req.body });
     res.status(201).json(result);
   })
 );

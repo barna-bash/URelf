@@ -3,6 +3,8 @@ import { urlCollection } from '../utils/db.ts';
 import { MongoError, ObjectId } from 'mongodb';
 import type { Url } from '../models/urls.ts';
 import type { NewUrlDto, UpdateUrlDto, UrlListItemDto } from '../dtos/url.ts';
+import { DEFAULT_AUTO_GENERATED_ALIAS_LENGTH } from '../utils/constants.ts';
+import { nanoid } from 'nanoid';
 
 class URLController {
   /**
@@ -15,7 +17,7 @@ class URLController {
    * ```typescript
    * const urlController = new URLController();
    * const urls = await urlController.getUrls('user123');
-   * // Returns: [{ _id: '...', originalUrl: 'https://example.com', slug: 'example', ... }, ...]
+   * // Returns: [{ _id: '...', originalUrl: 'https://example.com', customAlias: 'example', ... }, ...]
    * ```
    */
   public async getUrls(userId: string): Promise<UrlListItemDto[]> {
@@ -49,9 +51,9 @@ class URLController {
   }
 
   /**
-   * Retrieves the original URL by slug and records a new visit
+   * Retrieves the original URL by customAlias and records a new visit
    *
-   * @param slug - The slug of the shortened URL
+   * @param customAlias - The customAlias of the shortened URL
    * @returns A promise that resolves to the original URL string
    * @throws Error if URL is not found
    *
@@ -62,14 +64,14 @@ class URLController {
    * // Returns: 'https://example.com'
    * ```
    */
-  public async getRedirectUrl(slug: string): Promise<string> {
-    const urlEntry = await urlCollection.findOne<Url>({ slug }, { projection: { _id: 0, originalUrl: 1 } });
+  public async getRedirectUrl(customAlias: string): Promise<string> {
+    const urlEntry = await urlCollection.findOne<Url>({ customAlias }, { projection: { _id: 0, originalUrl: 1 } });
     if (!urlEntry) {
       throw new Error('URL not found');
     }
 
     // Add new visit timestamp to the usage array
-    await urlCollection.updateOne({ slug }, { $addToSet: { usage: new Date() } });
+    await urlCollection.updateOne({ customAlias }, { $addToSet: { usage: new Date() } });
 
     return urlEntry.originalUrl;
   }
@@ -87,18 +89,36 @@ class URLController {
    * const urlController = new URLController();
    * const newUrl = await urlController.addUrl('user123', {
    *   originalUrl: 'https://example.com',
-   *   slug: 'example',
+   *   customAlias: 'example',
    *   description: 'Example website'
    * });
-   * // Returns: { _id: '...', originalUrl: 'https://example.com', slug: 'example', ... }
+   * // Returns: { _id: '...', originalUrl: 'https://example.com', customAlias: 'example', ... }
    * ```
    */
-  public async addUrl(userId: string, url: NewUrlDto): Promise<Url> {
+  public async addUrl(userId: string, url: NewUrlDto): Promise<string> {
     const createdAt = new Date();
     try {
-      const result = await urlCollection.insertOne({ ...url, createdAt, updatedAt: createdAt, userId });
+      if (url.customAlias) {
+        const existingUrl = await urlCollection.findOne({ customAlias: url.customAlias });
+        if (existingUrl) {
+          throw new Error('URL with this alias already exists');
+        }
+      } else {
+        url.customAlias = nanoid(DEFAULT_AUTO_GENERATED_ALIAS_LENGTH);
+      }
 
-      return { _id: result.insertedId, ...url, createdAt, updatedAt: createdAt, usage: [], userId: new ObjectId(userId) };
+      const result = await urlCollection.insertOne({
+        ...url,
+        createdAt,
+        updatedAt: createdAt,
+        userId,
+      });
+
+      if (!result.insertedId) {
+        throw new Error('Failed to insert URL');
+      }
+
+      return url.customAlias;
     } catch (error) {
       if (error instanceof MongoError) {
         if (error.code === 11000) {
@@ -135,6 +155,13 @@ class URLController {
     const { urlId, ...urlToUpdateParams } = urlToUpdate;
 
     try {
+      if (urlToUpdateParams.customAlias) {
+        const existingUrl = await urlCollection.findOne({ customAlias: urlToUpdateParams.customAlias });
+        if (existingUrl) {
+          throw new Error('URL with this alias already exists');
+        }
+      }
+
       const urlUpdated = (await urlCollection.findOneAndUpdate(
         { _id: new ObjectId(urlId), userId },
         { $set: { ...urlToUpdateParams } },

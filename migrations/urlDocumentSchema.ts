@@ -1,4 +1,4 @@
-import { DB_NAME, MAX_SLUG_LENGTH } from '../utils/constants';
+import { DB_NAME, MAX_CUSTOM_ALIAS_LENGTH } from '../utils/constants';
 import { client } from '../utils/db';
 
 await client.db(DB_NAME).command({
@@ -12,10 +12,10 @@ await client.db(DB_NAME).command({
           bsonType: 'string',
           description: 'Required string',
         },
-        slug: {
+        customAlias: {
           bsonType: 'string',
           description: 'Optional string',
-          maxLength: MAX_SLUG_LENGTH,
+          maxLength: MAX_CUSTOM_ALIAS_LENGTH,
         },
         createdAt: {
           bsonType: 'date',
