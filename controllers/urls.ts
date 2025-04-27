@@ -1,4 +1,4 @@
-import { urlCollection } from '../utils/db.ts';
+import { urlCollection, userCollection } from '../utils/db.ts';
 
 import { MongoError, ObjectId } from 'mongodb';
 import type { Url } from '../models/urls.ts';
@@ -6,6 +6,7 @@ import type { NewUrlDto, UpdateUrlDto, UrlListItemDto } from '../dtos/url.ts';
 import { DEFAULT_AUTO_GENERATED_ALIAS_LENGTH, DEFAULT_URL_EXPIRATION_DAYS } from '../utils/constants.ts';
 import { nanoid } from 'nanoid';
 import { cache } from '../middlewares/cacheMiddleware.ts';
+import { AppError, NotFoundError, ConflictError, TooManyRequestsError, InternalServerError } from '../utils/errors.ts';
 
 class URLController {
   /**
@@ -45,7 +46,7 @@ class URLController {
     const urlEntry = await urlCollection.findOne<Url>({ _id: new ObjectId(urlId), userId: userId });
 
     if (!urlEntry) {
-      throw new Error('URL not found');
+      throw new NotFoundError('URL not found');
     }
 
     return urlEntry;
@@ -75,7 +76,7 @@ class URLController {
 
     const urlEntry = await urlCollection.findOne<Url>({ customAlias, expiresAt: { $gte: new Date() } }, { projection: { _id: 0, originalUrl: 1 } });
     if (!urlEntry) {
-      throw new Error('URL not found or expired');
+      throw new NotFoundError('URL not found or expired');
     }
     this.incrementUrlUsage(customAlias);
 
@@ -105,10 +106,21 @@ class URLController {
   public async addUrl(userId: string, url: NewUrlDto): Promise<string> {
     const createdAt = new Date();
     try {
+      const user = await userCollection.findOne({ _id: new ObjectId(userId) });
+      if (!user) {
+        throw new NotFoundError('User not found');
+      }
+
+      const urlsCreatedToday = await urlCollection.countDocuments({ userId, createdAt: { $gte: new Date(createdAt.setHours(0, 0, 0, 0)) } });
+
+      if (user.rateLimit && user.rateLimit <= urlsCreatedToday) {
+        throw new TooManyRequestsError('Max daily quota reached');
+      }
+
       if (url.customAlias) {
         const existingUrl = await urlCollection.findOne({ customAlias: url.customAlias });
         if (existingUrl) {
-          throw new Error('URL with this alias already exists');
+          throw new ConflictError('URL with this alias already exists');
         }
       } else {
         url.customAlias = nanoid(DEFAULT_AUTO_GENERATED_ALIAS_LENGTH);
@@ -125,20 +137,20 @@ class URLController {
       });
 
       if (!result.insertedId) {
-        throw new Error('Failed to insert URL');
+        throw new InternalServerError('Failed to insert URL');
       }
 
       return url.customAlias;
     } catch (error) {
       if (error instanceof MongoError) {
         if (error.code === 11000) {
-          // Duplicate key error
-          console.log('Duplicate key error:', error.message);
-          throw new Error('URL already exists');
+          throw new ConflictError('URL already exists');
         }
       }
-      console.log(error);
-      throw new Error('Failed to add URL');
+      if (error instanceof AppError) {
+        throw error;
+      }
+      throw new InternalServerError('Failed to add URL');
     }
   }
 
@@ -168,7 +180,7 @@ class URLController {
       if (urlToUpdateParams.customAlias) {
         const existingUrl = await urlCollection.findOne({ customAlias: urlToUpdateParams.customAlias });
         if (existingUrl) {
-          throw new Error('URL with this alias already exists');
+          throw new ConflictError('URL with this alias already exists');
         }
       }
 
@@ -179,13 +191,15 @@ class URLController {
       )) as Url | null;
 
       if (!urlUpdated) {
-        throw new Error('URL not found');
+        throw new NotFoundError('URL not found');
       }
 
       return urlUpdated;
     } catch (error) {
-      console.log(error);
-      throw new Error('Failed to update URL');
+      if (error instanceof AppError) {
+        throw error;
+      }
+      throw new InternalServerError('Failed to update URL');
     }
   }
 
@@ -208,16 +222,18 @@ class URLController {
     try {
       const result = await urlCollection.findOneAndDelete({ _id: new ObjectId(urlId), userId });
       if (!result) {
-        throw new Error('URL not found');
+        throw new NotFoundError('URL not found');
       }
       return true;
     } catch (error) {
-      console.log(error);
-      throw new Error('Failed to delete URL');
+      if (error instanceof AppError) {
+        throw error;
+      }
+      throw new InternalServerError('Failed to delete URL');
     }
   }
 
-  private incrementUrlUsage(customAlias: string) {
+  private incrementUrlUsage(customAlias: string): void {
     // Add new visit timestamp to the usage array
     urlCollection.updateOne({ customAlias }, { $addToSet: { usage: new Date() } });
   }

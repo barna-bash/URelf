@@ -2,6 +2,8 @@ import { Router } from 'express';
 
 import UserController from '../controllers/user';
 import NodeCache from 'node-cache';
+import { errorHandler } from '../middlewares/errorHandlerMiddleWare';
+import { BadRequestError } from '../utils/errors';
 
 const router = Router();
 const urlController = new UserController();
@@ -9,7 +11,8 @@ const ipCache = new NodeCache({ stdTTL: 60, checkperiod: 120 });
 
 router.post('/register', async (_req, res) => {
   if (!_req.body || !_req.body.userName) {
-    res.status(400).json({ message: 'Missing userName' });
+    errorHandler(new BadRequestError('Missing userName'), _req, res);
+    return;
   }
   const { userName, email } = _req.body;
 
