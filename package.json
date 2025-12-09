@@ -30,7 +30,6 @@
   },
   "dependencies": {
     "express": "^5.1.0",
-    "express-request-context": "^1.0.1",
     "mongodb": "^6.16.0",
     "nanoid": "^5.1.5",
     "node-cache": "^5.1.2",
