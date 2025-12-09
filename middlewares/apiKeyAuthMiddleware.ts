@@ -1,14 +1,41 @@
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
-import { logCollection, userCollection } from '../utils/db';
+import { userCollection } from '../utils/db';
 import type { User } from '../models/users';
 
 import NodeCache from 'node-cache';
+import { DEFAULT_RATE_LIMIT } from '../utils/constants';
 
 export interface AuthenticatedRequest extends Request {
   userId: string;
 }
 
 export const userCache = new NodeCache({ stdTTL: 60 * 60, checkperiod: 120 });
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+type RateLimiterEntry = { count: number; resetAt: number };
+const rateLimiterCache = new NodeCache({ stdTTL: RATE_LIMIT_WINDOW_MS / 1000, checkperiod: 30 });
+
+const consumeRateLimitToken = (userId: string, maxRequestsPerWindow: number): boolean => {
+  const key = `rate:${userId}`;
+  const existingWindow = rateLimiterCache.get<RateLimiterEntry>(key);
+  const now = Date.now();
+
+  if (!existingWindow || existingWindow.resetAt <= now) {
+    rateLimiterCache.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS }, RATE_LIMIT_WINDOW_MS / 1000);
+    return true;
+  }
+
+  if (existingWindow.count >= maxRequestsPerWindow) {
+    return false;
+  }
+
+  const remainingWindowSeconds = Math.max(1, Math.round((existingWindow.resetAt - now) / 1000));
+  rateLimiterCache.set(
+    key,
+    { count: existingWindow.count + 1, resetAt: existingWindow.resetAt },
+    remainingWindowSeconds
+  );
+  return true;
+};
 
 const apiKeyAuth = async (req: Request, res: Response, next: NextFunction): Promise<void | Response> => {
   const authHeader = req.headers['authorization'];
@@ -29,29 +56,15 @@ const apiKeyAuth = async (req: Request, res: Response, next: NextFunction): Prom
       cachedUser = user;
     }
 
-    // Check if user has not exceeded their rate limit in the past 1 minute
-    const currentDate = new Date();
+    const userRateLimit = cachedUser.rateLimit ?? DEFAULT_RATE_LIMIT;
+    const userId = cachedUser._id.toString();
 
-    const recentActivities = await logCollection
-      .find(
-        {
-          userId: cachedUser._id,
-          timestamp: { $gte: currentDate.getTime() - 60 * 1000 }, // Last 1 minute
-        },
-        {
-          projection: { _id: 1 },
-          sort: { timestamp: -1 }, // Sort by timestamp in descending order
-          limit: cachedUser.rateLimit,
-        }
-      )
-      .toArray();
-
-    if (recentActivities.length >= cachedUser.rateLimit) {
+    if (!consumeRateLimitToken(userId, userRateLimit)) {
       return res.status(429).json({ message: 'Rate limit exceeded' });
     }
 
     // Attach user ID to the request object for later use
-    (req as AuthenticatedRequest).userId = cachedUser._id.toString();
+    (req as AuthenticatedRequest).userId = userId;
 
     next();
   } catch (error) {
